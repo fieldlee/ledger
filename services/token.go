@@ -16,6 +16,7 @@ import (
 
 // 创建token
 func TokenCreate(stub shim.ChaincodeStubInterface)pb.Response{
+
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 2 {
@@ -40,15 +41,19 @@ func TokenCreate(stub shim.ChaincodeStubInterface)pb.Response{
 		return shim.Error(err.Error())
 	}
 
+	commonName , err := common.GetCommonName(stub)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
 	token := model.Token{}
 
 	if tokenByte == nil{
 
-		token.ObjectType = common.TOKEN
 		token.Status = true
 		token.Desc = desc
 		token.Name = tokenname
 
+		token.Issuer = commonName
 		tokenNewByte,err := json.Marshal(token)
 		if err != nil {
 			return shim.Error(err.Error())
@@ -67,7 +72,9 @@ func TokenCreate(stub shim.ChaincodeStubInterface)pb.Response{
 // 查询token
 
 func TokenGet(stub shim.ChaincodeStubInterface,tokenname string)(model.Token, error){
-	tokenByte,err := stub.GetState(common.TOKEN_PRE+tokenname)
+	uptokename := strings.ToUpper(strings.TrimSpace(tokenname))
+
+	tokenByte,err := stub.GetState(common.TOKEN_PRE+uptokename)
 	if err != nil {
 		return model.Token{},err
 	}
@@ -93,11 +100,7 @@ func TokenUpdateDisable(stub shim.ChaincodeStubInterface)pb.Response{
 		return shim.Error("args num check failed")
 	}
 
-	isAdmin,err := common.GetIsAdmin(stub)
-
-	if err != nil {
-		return shim.Error(err.Error())
-	}
+	isAdmin := common.IsSuperAdmin(stub)
 
 	if isAdmin == false{
 		return common.SendError(common.TKNERR_PREMISSON,"only admin can create token")
@@ -140,11 +143,7 @@ func TokenUpdateEnable(stub shim.ChaincodeStubInterface)pb.Response{
 		return shim.Error("args num check failed")
 	}
 
-	isAdmin,err := common.GetIsAdmin(stub)
-
-	if err != nil {
-		return shim.Error(err.Error())
-	}
+	isAdmin := common.IsSuperAdmin(stub)
 
 	if isAdmin == false{
 		return common.SendError(common.TKNERR_PREMISSON,"only admin can create token")
@@ -164,7 +163,6 @@ func TokenUpdateEnable(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 	token.Status = true
-
 	//	 保存
 	tokenByte , err = json.Marshal(token)
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 )
+
 /// check 用户名是否可用
 func AccountCheck(stub shim.ChaincodeStubInterface)pb.Response{
 	_,args := stub.GetFunctionAndParameters()
@@ -54,99 +55,43 @@ func AccountCheck(stub shim.ChaincodeStubInterface)pb.Response{
 
 	return common.SendError(common.ACCOUNT_EXIST,fmt.Sprintf("%s is exist",args[0]))
 }
+
 /// admin or 用户 confirm 用户并制为有效
 func AccountConfirm(stub shim.ChaincodeStubInterface)pb.Response{
 
-	isAdmin,err := common.GetIsAdmin(stub)
+	commonName,err := common.GetCommonName(stub)
 
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
-	if isAdmin {
+	accountName := strings.ToUpper(strings.TrimSpace(commonName))
 
-		_,args := stub.GetFunctionAndParameters()
+	accountByte,err := stub.GetState(common.ACCOUNT_PRE + accountName)
 
-		if len(args) != 1{
-			return shim.Error("Parameters error ,please check Parameters")
-		}
+	if err != nil {
+		return shim.Error(err.Error())
+	}
 
-		accountName := strings.ToUpper(strings.TrimSpace(args[0]))
-
-		if accountName == ""{
-			return shim.Error("The Name is Blank")
-		}
-		if len(accountName) < 3 && len(accountName) > 64 {
-			return shim.Error("The Name must low 64 strings and higher 3 strings")
-		}
-
-		accountByte,err := stub.GetState(common.ACCOUNT_PRE + accountName)
-
+	account := model.Account{}
+	if accountByte == nil {
+		return common.SendError(common.ACCOUNT_NOT_EXIST,"the common name not check, please first call check api")
+	}else{
+		err = json.Unmarshal(accountByte,&account)
 		if err != nil {
 			return shim.Error(err.Error())
-		}
-
-		account := model.Account{}
-		if accountByte != nil {
-			err = json.Unmarshal(accountByte,&account)
-			if err != nil {
-				return shim.Error(err.Error())
-			}
 		}
 		account.DidName = accountName
-		account.CommonName = strings.TrimSpace(args[0])
+		account.CommonName = commonName
 		account.MspID = common.GetMspid(stub)
-		account.ObjectType = common.ACCOUNT
 		account.Status = true
 
-		newaccountByte,err := json.Marshal(account)
-		if err != nil {
-			return shim.Error(err.Error())
-		}
-
-		err = stub.PutState(common.ACCOUNT_PRE + accountName,newaccountByte)
-		if err != nil {
-			return shim.Error(err.Error())
-		}
-
 		return shim.Success(nil)
-
-	} else { //////  普通用户
-
-		commonName,err := common.GetCommonName(stub)
-
-		if err != nil {
-			return shim.Error(err.Error())
-		}
-
-		accountName := strings.ToUpper(strings.TrimSpace(commonName))
-
-		accountByte,err := stub.GetState(common.ACCOUNT_PRE + accountName)
-
-		if err != nil {
-			return shim.Error(err.Error())
-		}
-
-		account := model.Account{}
-		if accountByte == nil {
-			return common.SendError(common.ACCOUNT_NOT_EXIST,"the common name not check, please first call check api")
-		}else{
-			err = json.Unmarshal(accountByte,&account)
-			if err != nil {
-				return shim.Error(err.Error())
-			}
-			account.DidName = accountName
-			account.CommonName = commonName
-			account.MspID = common.GetMspid(stub)
-			account.ObjectType = common.ACCOUNT
-			account.Status = true
-
-			return shim.Success(nil)
-		}
 	}
 }
 // 查找用户
 func AccountGetByName(stub shim.ChaincodeStubInterface,didName string)(model.Account,error){
+
 	accountName := strings.ToUpper(strings.TrimSpace(didName))
 
 	didByte,err := stub.GetState(common.ACCOUNT_PRE + accountName)
@@ -166,35 +111,28 @@ func AccountGetByName(stub shim.ChaincodeStubInterface,didName string)(model.Acc
 }
 /// 锁定账号
 func AccountLock(stub shim.ChaincodeStubInterface)pb.Response{
-
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 1{
 		return shim.Error("Parameters error ,please check Parameters")
 	}
+	isSuperAdmin := common.IsSuperAdmin(stub)
 
-	isAdmin , err := common.GetIsAdmin(stub)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
+	if isSuperAdmin {
+		accountName := strings.ToUpper(strings.TrimSpace(args[0]))
+		byteAccount,err := stub.GetState(common.ACCOUNT_PRE + accountName)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		account := model.Account{}
+		err = json.Unmarshal(byteAccount,&account)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
 
-	if isAdmin == false {
-		return shim.Error("only admin can call this function")
-	}
-	// 超级管理员账号
-	account := model.Account{}
-
-	accountName := strings.ToUpper(strings.TrimSpace(args[0]))
-	byteAccount,err := stub.GetState(common.ACCOUNT_PRE + accountName)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-	err = json.Unmarshal(byteAccount,&account)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	if common.GetMspid(stub) == common.ADMIN_ORG {
+		if account.Status == false {
+			return shim.Success(nil)
+		}
 
 		account.Status = false
 
@@ -208,55 +146,33 @@ func AccountLock(stub shim.ChaincodeStubInterface)pb.Response{
 		}
 		return shim.Success(nil)
 	}else{
-		//  比较mspid
-		if common.GetMspid(stub) == account.MspID {
-			account.Status = false
-
-			accountByte,err := json.Marshal(account)
-			if err != nil{
-				return shim.Error(err.Error())
-			}
-			err = stub.PutState(common.ACCOUNT_PRE + accountName,accountByte)
-			if err != nil{
-				return shim.Error(err.Error())
-			}
-			return shim.Success(nil)
-		}else{
-			return shim.Error(fmt.Sprintf("only %s admin or super admin can call this function",account.MspID))
-		}
+		return shim.Error("only admin can call this function")
 	}
 }
 /// 解锁账号
 func AccountUNLock(stub shim.ChaincodeStubInterface)pb.Response{
-
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 1{
 		return shim.Error("Parameters error ,please check Parameters")
 	}
+	isSuperAdmin := common.IsSuperAdmin(stub)
 
-	isAdmin , err := common.GetIsAdmin(stub)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
+	if isSuperAdmin {
+		accountName := strings.ToUpper(strings.TrimSpace(args[0]))
+		byteAccount,err := stub.GetState(common.ACCOUNT_PRE + accountName)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		account := model.Account{}
+		err = json.Unmarshal(byteAccount,&account)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
 
-	if isAdmin == false {
-		return shim.Error("only admin can call this function")
-	}
-	// 超级管理员账号
-	account := model.Account{}
-
-	accountName := strings.ToUpper(strings.TrimSpace(args[0]))
-	byteAccount,err := stub.GetState(common.ACCOUNT_PRE + accountName)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-	err = json.Unmarshal(byteAccount,&account)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	if common.GetMspid(stub) == common.ADMIN_ORG {
+		if account.Status == true {
+			return shim.Success(nil)
+		}
 
 		account.Status = true
 
@@ -270,21 +186,7 @@ func AccountUNLock(stub shim.ChaincodeStubInterface)pb.Response{
 		}
 		return shim.Success(nil)
 	}else{
-		//  比较mspid
-		if common.GetMspid(stub) == account.MspID {
-			account.Status = true
-			accountByte,err := json.Marshal(account)
-			if err != nil{
-				return shim.Error(err.Error())
-			}
-			err = stub.PutState(common.ACCOUNT_PRE + accountName,accountByte)
-			if err != nil{
-				return shim.Error(err.Error())
-			}
-			return shim.Success(nil)
-		}else{
-			return shim.Error(fmt.Sprintf("only %s admin or super admin can call this function",account.MspID))
-		}
+		return shim.Error("only admin can call this function")
 	}
 }
 /// get history

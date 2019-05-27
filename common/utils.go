@@ -5,6 +5,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 	"ledger/log"
+	"strings"
 )
 
 
@@ -45,7 +46,7 @@ func GetMsp(stub shim.ChaincodeStubInterface)(string){
 	return mspid
 }
 
-func GetRight(stub shim.ChaincodeStubInterface){
+func GetRight(stub shim.ChaincodeStubInterface)(string){
 	id, err := cid.New(stub)
 	if err != nil {
 		log.Logger.Error("shim GetRight error", err.Error())
@@ -56,7 +57,13 @@ func GetRight(stub shim.ChaincodeStubInterface){
 		log.Logger.Error("shim GetRight error", err.Error())
 	}
 
+	//id.GetAttributeValue()
 
+	if cert.IsCA {
+		return "Admin"
+	}else{
+		return "Member"
+	}
 }
 
 func SendError(errno int32, msg string) pb.Response {
@@ -79,17 +86,39 @@ func GetCommonName(stub shim.ChaincodeStubInterface)( string, error){
 }
 
 func GetIsAdmin(stub shim.ChaincodeStubInterface)( bool, error){
-	cert,err := cid.New(stub)
+	val, ok, err := cid.GetAttributeValue(stub, "Admin")
 	if err != nil {
 		return false,err
 	}
-	certfiaction,err := cert.GetX509Certificate()
+
+	if ok {
+		if val == "true" {
+			return true,nil
+		}
+	}
+	return false, nil
+}
+
+func IsSuperAdmin(stub shim.ChaincodeStubInterface)(bool){
+
+	orgid := GetMsp(stub)
+
+	isAdmin, err:= GetIsAdmin(stub)
+
 	if err != nil {
-		return false,err
+		log.Logger.Error("IsSuperAdmin error", err.Error())
 	}
-	if certfiaction.Subject.CommonName == ADMIN_Name {
-		return true, nil
-	}else{
-		return false, nil
+	comName , err := GetCommonName(stub)
+	if err != nil {
+		log.Logger.Error("GetCommonName error", err.Error())
 	}
+	if strings.ToLower(orgid) == strings.ToLower(ADMIN_ORG) {
+		if isAdmin == true {
+			return  true
+		}
+		if strings.ToLower(comName) == strings.ToLower(ADMIN_Name) {
+			return true
+		}
+	}
+	return false
 }
