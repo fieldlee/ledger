@@ -16,7 +16,8 @@ const SIGN_PRE = "SIGN"
 
 const CompositeIndexName = "pre~tkn~name"
 const CompositeRequestIndexName = "pre~name~txid"
-
+const Evt_payment uint8 = 255
+const TOPIC = "LEDGER_TX_%s"
 const (
 	TKNERR_EXIST   = 501
 	TKNERR_LOCKED  = 502

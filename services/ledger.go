@@ -311,6 +311,35 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 	if err != nil {
 		return shim.Error(err.Error())
 	}
+
+
+
+	////////////////// send event
+	ts, err := stub.GetTxTimestamp()
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	//////// set event
+	evt := model.LedgerEvent{
+		Type: common.Evt_payment,
+		Txid:   stub.GetTxID(),
+		Time:   ts.GetSeconds(),
+		From:   transfer.From,
+		To:     transfer.To,
+		Amount: strconv.FormatFloat(transfer.Amount,'f',2,64) ,
+		Token:  transfer.Token,
+	}
+
+	eventJSONasBytes, err := json.Marshal(evt)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	err = stub.SetEvent(fmt.Sprintf(common.TOPIC, transfer.To), eventJSONasBytes)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
 	return shim.Success(nil)
 }
 

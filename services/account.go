@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
+	"ledger/log"
 	"ledger/model"
 	"ledger/common"
 	"strconv"
@@ -17,21 +18,25 @@ import (
 func AccountCheck(stub shim.ChaincodeStubInterface)pb.Response{
 	_,args := stub.GetFunctionAndParameters()
 	if len(args) != 1{
+		log.Logger.Error("Parameters error ,please check Parameters")
 		return shim.Error("Parameters error ,please check Parameters")
 	}
 
 	accountName := strings.ToUpper(strings.TrimSpace(args[0]))
 
 	if accountName == ""{
+		log.Logger.Error("The Name is Blank")
 		return shim.Error("The Name is Blank")
 	}
 
 	if len(accountName) < 3 && len(accountName) > 64 {
+		log.Logger.Error("The Name must low 64 strings and higher 3 strings")
 		return shim.Error("The Name must low 64 strings and higher 3 strings")
 	}
 
 	accByte,err := stub.GetState(common.ACCOUNT_PRE + accountName)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 	// 查询account 是否存在
@@ -47,6 +52,7 @@ func AccountCheck(stub shim.ChaincodeStubInterface)pb.Response{
 
 		err = stub.PutState(common.ACCOUNT_PRE + accountName,newAccByte)
 		if err != nil {
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 		// 返回check 状态
@@ -62,6 +68,7 @@ func AccountConfirm(stub shim.ChaincodeStubInterface)pb.Response{
 	commonName,err := common.GetCommonName(stub)
 
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
@@ -70,15 +77,18 @@ func AccountConfirm(stub shim.ChaincodeStubInterface)pb.Response{
 	accountByte,err := stub.GetState(common.ACCOUNT_PRE + accountName)
 
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
 	account := model.Account{}
 	if accountByte == nil {
+		log.Logger.Error("the common name not check, please first call check api")
 		return common.SendError(common.ACCOUNT_NOT_EXIST,"the common name not check, please first call check api")
 	}else{
 		err = json.Unmarshal(accountByte,&account)
 		if err != nil {
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 		account.DidName = accountName
@@ -96,9 +106,11 @@ func AccountGetByName(stub shim.ChaincodeStubInterface,didName string)(model.Acc
 
 	didByte,err := stub.GetState(common.ACCOUNT_PRE + accountName)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return model.Account{},err
 	}
 	if didByte == nil {
+		log.Logger.Error(err.Error())
 		return model.Account{},nil
 	}
 
@@ -114,6 +126,7 @@ func AccountLock(stub shim.ChaincodeStubInterface)pb.Response{
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 1{
+		log.Logger.Error("Parameters error ,please check Parameters")
 		return shim.Error("Parameters error ,please check Parameters")
 	}
 	isSuperAdmin := common.IsSuperAdmin(stub)
@@ -122,11 +135,13 @@ func AccountLock(stub shim.ChaincodeStubInterface)pb.Response{
 		accountName := strings.ToUpper(strings.TrimSpace(args[0]))
 		byteAccount,err := stub.GetState(common.ACCOUNT_PRE + accountName)
 		if err != nil {
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 		account := model.Account{}
 		err = json.Unmarshal(byteAccount,&account)
 		if err != nil {
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 
@@ -138,14 +153,17 @@ func AccountLock(stub shim.ChaincodeStubInterface)pb.Response{
 
 		accountByte,err := json.Marshal(account)
 		if err != nil{
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 		err = stub.PutState(common.ACCOUNT_PRE + accountName,accountByte)
 		if err != nil{
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 		return shim.Success(nil)
 	}else{
+		log.Logger.Error("only admin can call this function")
 		return shim.Error("only admin can call this function")
 	}
 }
@@ -154,6 +172,7 @@ func AccountUNLock(stub shim.ChaincodeStubInterface)pb.Response{
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 1{
+		log.Logger.Error("Parameters error ,please check Parameters")
 		return shim.Error("Parameters error ,please check Parameters")
 	}
 	isSuperAdmin := common.IsSuperAdmin(stub)
@@ -167,6 +186,7 @@ func AccountUNLock(stub shim.ChaincodeStubInterface)pb.Response{
 		account := model.Account{}
 		err = json.Unmarshal(byteAccount,&account)
 		if err != nil {
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 
@@ -178,14 +198,17 @@ func AccountUNLock(stub shim.ChaincodeStubInterface)pb.Response{
 
 		accountByte,err := json.Marshal(account)
 		if err != nil{
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 		err = stub.PutState(common.ACCOUNT_PRE + accountName,accountByte)
 		if err != nil{
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 		return shim.Success(nil)
 	}else{
+		log.Logger.Error("only admin can call this function")
 		return shim.Error("only admin can call this function")
 	}
 }
@@ -194,6 +217,7 @@ func AccountGetHistory(stub shim.ChaincodeStubInterface)pb.Response{
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 1{
+		log.Logger.Error("Parameters error ,please check Parameters")
 		return shim.Error("Parameters error ,please check Parameters")
 	}
 
@@ -202,6 +226,7 @@ func AccountGetHistory(stub shim.ChaincodeStubInterface)pb.Response{
 	history, err := stub.GetHistoryForKey(common.ACCOUNT_PRE + accountName)
 
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 

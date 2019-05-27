@@ -231,9 +231,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	}
 
 	if response.Accept == false{  ///// 不同意支付
-
 		////// update sign
-
 		sign.Status = common.Failed_SIGN
 
 	}else{  /////// 同意支付
@@ -251,13 +249,36 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		if err != nil {
 			return shim.Error(err.Error())
 		}
-
 		////// update sign
-
 		sign.Status = common.SENT_SIGN
+
+
+		////////////////// send event
+		ts, err := stub.GetTxTimestamp()
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		//////// set event
+		evt := model.LedgerEvent{
+			Type: common.Evt_payment,
+			Txid:  stub.GetTxID(),
+			Time:   ts.GetSeconds(),
+			From:   sign.Sender,
+			To:     sign.Receiver,
+			Amount: strconv.FormatFloat(sign.Amount,'f',2,64) ,
+			Token:  sign.Token,
+		}
+
+		eventJSONasBytes, err := json.Marshal(evt)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		err = stub.SetEvent(sign.TxID, eventJSONasBytes)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
 	}
-
-
 
 	signBYte , err := json.Marshal(sign)
 	if err != nil {

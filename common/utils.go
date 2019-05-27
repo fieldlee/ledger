@@ -36,6 +36,7 @@ func GetMspid(stub shim.ChaincodeStubInterface) (string) {
 
 func GetMsp(stub shim.ChaincodeStubInterface)(string){
 	id, err := cid.New(stub)
+	log.Logger.Info(id)
 	if err != nil {
 		log.Logger.Error("shim getMsp error", err.Error())
 	}
@@ -43,6 +44,7 @@ func GetMsp(stub shim.ChaincodeStubInterface)(string){
 	if err != nil {
 		log.Logger.Error("shim getMsp error", err.Error())
 	}
+	log.Logger.Info(mspid)
 	return mspid
 }
 
@@ -59,6 +61,7 @@ func GetRight(stub shim.ChaincodeStubInterface)(string){
 
 	//id.GetAttributeValue()
 
+	log.Logger.Info(id)
 	if cert.IsCA {
 		return "Admin"
 	}else{
@@ -76,10 +79,12 @@ func SendError(errno int32, msg string) pb.Response {
 func GetCommonName(stub shim.ChaincodeStubInterface)( string, error){
 	cert,err := cid.New(stub)
 	if err != nil {
+		log.Logger.Error(err)
 		return "",err
 	}
 	certfiaction,err := cert.GetX509Certificate()
 	if err != nil {
+		log.Logger.Error(err)
 		return "",err
 	}
 	return certfiaction.Subject.CommonName,nil
