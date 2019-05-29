@@ -8,6 +8,7 @@ import (
 	pb "github.com/hyperledger/fabric/protos/peer"
 	"ledger/common"
 	"ledger/model"
+	"ledger/log"
 	"strconv"
 	"strings"
 
@@ -21,7 +22,7 @@ func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 	signRequestStr := args[0]
-
+	log.Logger.Info(signRequestStr)
 	request := model.LedgerRequestParam{}
 
 	err := json.Unmarshal([]byte(signRequestStr),&request)
@@ -106,6 +107,7 @@ func SignGetRequest(stub shim.ChaincodeStubInterface) pb.Response{
 		return shim.Error("Parameters error ,please check Parameters")
 	}
 	signGet := args[0]
+	log.Logger.Info(signGet)
 	//// account sender
 	account,err := AccountGetByName(stub,signGet)
 	if err != nil {
@@ -149,7 +151,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		return shim.Error("Parameters error ,please check Parameters")
 	}
 	signRespJson := args[0]
-
+	log.Logger.Info(signRespJson)
 	response := model.LedgerResponseParam{}
 
 	err := json.Unmarshal([]byte(signRespJson),&response)

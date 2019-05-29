@@ -7,6 +7,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 	"ledger/common"
+	"ledger/log"
 	"ledger/model"
 	"strconv"
 	"strings"
@@ -23,6 +24,7 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 	issueJson := args[0]
+	log.Logger.Info(issueJson)
     issueParam   :=	model.LedgerIssueParam{}
     err := json.Unmarshal([]byte(issueJson),&issueParam)
     if err != nil {
@@ -106,7 +108,7 @@ func LedgerGetBalance(stub shim.ChaincodeStubInterface)pb.Response  {
 	}
 
 	balancejson := args[0]
-
+	log.Logger.Info(balancejson)
 	balance := model.LedgerBalanceParam{}
 
 	err  := json.Unmarshal([]byte(balancejson),&balance)
@@ -240,6 +242,7 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 	transferjson := args[0]
+	log.Logger.Info(transferjson)
 	transfer := model.LedgerTransferParam{}
 	err := json.Unmarshal([]byte(transferjson),&transfer)
 	if err != nil {
@@ -351,7 +354,7 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 	}
 
 	scaleJson := args[0]
-
+	log.Logger.Info(scaleJson)
 	scaleParam := model.LedgerScaleParam{}
 
 	err := json.Unmarshal([]byte(scaleJson),&scaleParam)

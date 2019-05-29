@@ -107,6 +107,7 @@ func TokenUpdateDisable(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 	tokenname := strings.ToUpper(strings.TrimSpace(args[0]))
+
 	tokenByte,err := stub.GetState(common.TOKEN_PRE+tokenname)
 	if err != nil {
 		return shim.Error(err.Error())
