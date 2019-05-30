@@ -41,9 +41,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/services/ledger.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="560">
-              <caret line="103" column="34" selection-start-line="103" selection-start-column="34" selection-end-line="103" selection-end-column="34" />
+            <state relative-caret-position="-97">
+              <caret line="361" column="5" lean-forward="true" selection-start-line="348" selection-start-column="4" selection-end-line="361" selection-end-column="5" />
               <folding>
+                <element signature="n#!!block;n#LedgerIssue#0" />
                 <element signature="n#!!block;n#LedgerGetBalance#0" />
                 <element signature="n#!!block;n#LedgerGetHistory#0" />
                 <element signature="n#!!block;n#LedgerScale#0" />
@@ -119,6 +120,7 @@
       <find>GetMspid</find>
       <find>CommonName</find>
       <find>GetMsp</find>
+      <find>the token holder not allownce empty</find>
     </findStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$</dir>
@@ -210,7 +212,7 @@
     <frame x="67" y="25" width="1853" height="1055" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1601108" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.12742382" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -397,9 +399,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/services/ledger.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="560">
-          <caret line="103" column="34" selection-start-line="103" selection-start-column="34" selection-end-line="103" selection-end-column="34" />
+        <state relative-caret-position="-97">
+          <caret line="361" column="5" lean-forward="true" selection-start-line="348" selection-start-column="4" selection-end-line="361" selection-end-column="5" />
           <folding>
+            <element signature="n#!!block;n#LedgerIssue#0" />
             <element signature="n#!!block;n#LedgerGetBalance#0" />
             <element signature="n#!!block;n#LedgerGetHistory#0" />
             <element signature="n#!!block;n#LedgerScale#0" />

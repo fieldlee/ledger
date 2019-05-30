@@ -294,6 +294,7 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 		return common.SendError(common.TKNERR_LOCKED,fmt.Sprintf("%s Token is disable",token.Name))
 	}
 
+	//////////// from
 	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(accountFrom.DidName)})
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountFrom.DidName, err.Error()))
@@ -305,6 +306,8 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 		return shim.Error(err.Error())
 	}
 
+
+	///////////////////////////from
 	ledger := model.Ledger{}
 
 	err = json.Unmarshal(ledgerByte,&ledger)
@@ -323,13 +326,50 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 		log.Logger.Error("Marshal:",err)
 		return shim.Error(err.Error())
 	}
+
 	err = stub.PutState(key,ledgerByted)
 	if err != nil {
 		log.Logger.Error("PutState:",err)
 		return shim.Error(err.Error())
 	}
 
+	//////////////////////to
+	tokey, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(accountTo.DidName)})
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountTo.DidName, err.Error()))
+	}
+	toledgerByte,err := stub.GetState(tokey)
+	if err != nil{
+		log.Logger.Error("TO GetState:",err)
+		return shim.Error(err.Error())
+	}
+	log.Logger.Info("toledgerByte:",toledgerByte)
 
+	toledger := model.Ledger{}
+	if toledgerByte == nil {
+		toledger.Holder = strings.ToUpper(accountTo.DidName)
+		toledger.Token = strings.ToUpper(token.Name)
+		toledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(transfer.Amount,'f',2,64))
+		toledger.Amount = toledger.Amount + transfer.Amount
+	}else {
+		err = json.Unmarshal(toledgerByte,&toledger)
+		if err != nil {
+			log.Logger.Error("Unmarshal22:",err)
+			return shim.Error(err.Error())
+		}
+		toledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(transfer.Amount,'f',2,64))
+		toledger.Amount = toledger.Amount + transfer.Amount
+	}
+	toTransferedByted , err := json.Marshal(toledger)
+	if err != nil {
+		log.Logger.Error("Marshal333:",err)
+		return shim.Error(err.Error())
+	}
+	err = stub.PutState(tokey,toTransferedByted)
+	if err != nil {
+		log.Logger.Error("PutState222:",err)
+		return shim.Error(err.Error())
+	}
 
 	////////////////// send event
 	ts, err := stub.GetTxTimestamp()
