@@ -11,6 +11,7 @@ import (
 	"ledger/model"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
@@ -157,6 +158,80 @@ func SignGetRequest(stub shim.ChaincodeStubInterface) pb.Response{
 	}
 	buffer.WriteString("]")
 
+	return shim.Success(buffer.Bytes())
+}
+
+func SignHistory(stub shim.ChaincodeStubInterface)pb.Response {
+	_,args := stub.GetFunctionAndParameters()
+
+	if len(args) != 1{
+		return shim.Error("Parameters error ,please check Parameters")
+	}
+	signRespJson := args[0]
+	log.Logger.Info(signRespJson)
+	response := model.LedgerResponseParam{}
+
+	err := json.Unmarshal([]byte(signRespJson),&response)
+	if err != nil {
+		log.Logger.Error(err.Error())
+		return shim.Error(err.Error())
+	}
+
+	token , err := TokenGet(stub,response.Token)
+	if err != nil {
+		log.Logger.Error(err.Error())
+		return shim.Error(err.Error())
+	}
+
+	key, err := stub.CreateCompositeKey(common.CompositeRequestIndexName, []string{common.SIGN_PRE,token.Name,strings.ToUpper(strings.TrimSpace(response.Sender)),  response.Txid})
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", response.Sender, response.Txid, err.Error()))
+	}
+
+	history, err := stub.GetHistoryForKey(key)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	defer  history.Close()
+
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+
+	bArrayMemberAlreadyWritten := false
+
+	for history.HasNext(){
+		response ,err := history.Next()
+		if err != nil {
+			continue
+		}
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString("{\"TxId\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(response.TxId)
+		buffer.WriteString("\"")
+
+		buffer.WriteString(", \"Value\":")
+		if response.IsDelete {
+			buffer.WriteString("null")
+		} else {
+			buffer.WriteString(string(response.Value))
+		}
+		buffer.WriteString(", \"Timestamp\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(time.Unix(response.Timestamp.Seconds, int64(response.Timestamp.Nanos)).String())
+		buffer.WriteString("\"")
+
+		buffer.WriteString(", \"IsDelete\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(strconv.FormatBool(response.IsDelete))
+		buffer.WriteString("\"")
+
+		buffer.WriteString("}")
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
 	return shim.Success(buffer.Bytes())
 }
 

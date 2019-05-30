@@ -62,6 +62,9 @@ func(lcc *LedgerChainCode)Invoke(stub shim.ChaincodeStubInterface)pb.Response{
 	case "signget":
 		return services.SignGetRequest(stub)
 
+	case "signhistory":
+		return services.SignHistory(stub)
+
 	case "signresp":
 		return services.SignRepsonse(stub)
 
