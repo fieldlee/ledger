@@ -93,7 +93,7 @@ func AccountConfirm(stub shim.ChaincodeStubInterface)pb.Response{
 		}
 		account.DidName = accountName
 		account.CommonName = commonName
-		account.MspID = common.GetMspid(stub)
+		account.MspID = common.GetMsp(stub)
 		account.Status = true
 
 		return shim.Success(nil)

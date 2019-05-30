@@ -73,6 +73,8 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 
+	log.Logger.Info("holder:",holder)
+
 	leder := model.Ledger{}
 
 	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(holder)})
