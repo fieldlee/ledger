@@ -15,7 +15,7 @@ const Ledger_PRE = "LEDGER"
 const SIGN_PRE = "SIGN"
 
 const CompositeIndexName = "pre~tkn~name"
-const CompositeRequestIndexName = "pre~name~txid"
+const CompositeRequestIndexName = "pre~tkn~name~txid"
 const Evt_payment uint8 = 255
 const TOPIC = "LEDGER_TX_%s"
 const (
@@ -35,6 +35,7 @@ const (
 	Right_ERR = 504
 	Param_ERR = 505
 	Balance_NOT_ENOUGH = 506
+	STATUS_ERR = 507
 )
 
 const(

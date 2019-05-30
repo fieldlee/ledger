@@ -72,8 +72,14 @@ type LedgerRequestParam struct {
 	Amount     float64 `json:"amount"`
 }
 
+type LedgerSignGetParam struct {
+	Token string `json:"token"`
+	Sender string `json:"sender"`
+}
+
 type LedgerResponseParam struct {
 	Accept bool `json:"accept"`
+	Token      string `json:"token"`
 	Desc       string `json:"desc"`
 	Txid      string `json:"txid"`
 	Sender     string `json:"sender"`

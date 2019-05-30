@@ -434,7 +434,7 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 	if common.IsSuperAdmin(stub) == false {
 		return common.SendError(common.ACCOUNT_PREMISSION,"only super admin can break up or merge operation")
 	}
-
+	///////////////////////////////////////////////////////================================修改持有token賬戶
 	resultIterator, err := stub.GetStateByPartialCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE,strings.ToUpper(token.Name)})
 	if err != nil {
 		log.Logger.Error("GetStateByPartialCompositeKey:",err)
@@ -483,7 +483,60 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 		}
 	}
 
-	returnString := fmt.Sprintf("had scale %d token holders",i)
+	///////////////////////////////////////////////////////===============================修改未簽名的轉賬
+
+	signIter , err := stub.GetStateByPartialCompositeKey(common.CompositeRequestIndexName,[]string{common.SIGN_PRE,strings.ToUpper(token.Name)})
+	if err != nil {
+		log.Logger.Error("GetStateByPartialCompositeKey:",err)
+		return shim.Error(err.Error())
+	}
+	defer signIter.Close()
+	var j int
+	for j=0;signIter.HasNext();j++{
+		iterSignObj,err := signIter.Next()
+		if err != nil {
+			log.Logger.Error("signIter:",err)
+			return shim.Error(err.Error())
+		}
+		signkey := iterSignObj.Key
+
+		log.Logger.Info(signkey)
+
+		signReq := model.SignRequest{}
+		err = json.Unmarshal(iterSignObj.Value,&signReq)
+		if err != nil {
+			log.Logger.Error("Unmarshal:",err)
+			return shim.Error(err.Error())
+		}
+		if signReq.Status == common.PENDING_SIGN {
+			log.Logger.Info("amount pre :",signReq.Amount)
+			signReq.Amount = signReq.Amount * scaleParam.Scale
+			log.Logger.Info("amount aft:",signReq.Amount)
+			////////// desc info
+			if scaleParam.Scale > float64(1.0) {
+				signReq.Desc =  fmt.Sprintf("%s token break up , breake up scale %s",scaleParam.Token, strconv.FormatFloat(scaleParam.Scale,'f',2,64) )
+			}else{
+				signReq.Desc =  fmt.Sprintf("%s token merge , merge scale %s",scaleParam.Token, strconv.FormatFloat(scaleParam.Scale,'f',2,64) )
+			}
+			ledgerByte,err  := json.Marshal(signReq)
+
+			if err != nil {
+				log.Logger.Error("Marshal:",err)
+				return shim.Error(err.Error())
+			}
+			err = stub.PutState(signkey,ledgerByte)
+
+			if err != nil {
+				log.Logger.Error("PutState:",err)
+				return shim.Error(err.Error())
+			}
+		}else{
+			continue
+		}
+	}
+
+
+	returnString := fmt.Sprintf("had scale %d token holders, had scale %d pending for sign tx",i,j)
 	return shim.Success([]byte(returnString))
 
 }
