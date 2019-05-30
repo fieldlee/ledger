@@ -172,11 +172,13 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	err := json.Unmarshal([]byte(signRespJson),&response)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
 	currentName ,err := common.GetCommonName(stub)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
@@ -186,6 +188,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	token , err := TokenGet(stub,response.Token)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
@@ -200,6 +203,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	respBYte,err := stub.GetState(key)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
@@ -208,6 +212,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	err = json.Unmarshal(respBYte,&sign)
 
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
@@ -218,10 +223,12 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	///////////////////////check token and from to
 	accountFrom, err := AccountGetByName(stub,sign.Sender)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 	accountTo, err := AccountGetByName(stub,sign.Receiver)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
@@ -241,14 +248,15 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	ledgerByte,err := stub.GetState(ledgerkey)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
 	//////// transfer
 	ledger := model.Ledger{}
-
 	err = json.Unmarshal(ledgerByte,&ledger)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 
@@ -264,10 +272,12 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 		ledgerByted , err := json.Marshal(ledger)
 		if err != nil {
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 		err = stub.PutState(ledgerkey,ledgerByted)
 		if err != nil {
+			log.Logger.Error(err.Error())
 			return shim.Error(err.Error())
 		}
 		////// update sign
@@ -295,6 +305,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		}else {
 			err = json.Unmarshal(toledgerByte,&toledger)
 			if err != nil {
+				log.Logger.Error(err.Error())
 				return shim.Error(err.Error())
 			}
 			toledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(sign.Amount,'f',2,64))
@@ -345,10 +356,12 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	signBYte , err := json.Marshal(sign)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 	err = stub.PutState(key,signBYte)
 	if err != nil {
+		log.Logger.Error(err.Error())
 		return shim.Error(err.Error())
 	}
 	return shim.Success(nil)
