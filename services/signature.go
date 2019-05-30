@@ -340,7 +340,6 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		if ledger.Amount < sign.Amount {
 			return common.SendError(common.Balance_NOT_ENOUGH,fmt.Sprintf("the %s token balance not enough",token.Name))
 		}
-
 		ledger.Amount = ledger.Amount - sign.Amount
 
 		ledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(sign.Amount,'f',2,64))
@@ -357,7 +356,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		}
 		////// update sign
 		sign.Status = common.SENT_SIGN
-
+		sign.Desc = fmt.Sprintf("the signature request had accepted !")
 		//////////////////////to
 		tokey, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name), strings.ToUpper(accountTo.DidName)})
 		if err != nil {
@@ -426,6 +425,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	}else{  /////// 不同意支付
 		////// update sign
+		sign.Desc = fmt.Sprintf("the signature request had refused!")
 		sign.Status = common.Failed_SIGN
 	}
 
