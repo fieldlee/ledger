@@ -28,16 +28,19 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
     issueParam   :=	model.LedgerIssueParam{}
     err := json.Unmarshal([]byte(issueJson),&issueParam)
     if err != nil {
+		log.Logger.Error("Unmarshal:",err)
     	return shim.Error(err.Error())
 	}
 
     token, err := TokenGet(stub,issueParam.Token)
 	if err != nil {
+		log.Logger.Error("TokenGet:",err)
 		return shim.Error(err.Error())
 	}
 
     curUserName,err  := common.GetCommonName(stub)
 	if err != nil {
+		log.Logger.Error("GetCommonName:",err)
 		return shim.Error(err.Error())
 	}
     //// super admin
@@ -54,6 +57,7 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 
 	holder, err  := common.GetCommonName(stub)
 	if err != nil {
+		log.Logger.Error("GetCommonName:",err)
 		return shim.Error(err.Error())
 	}
 	if common.IsSuperAdmin(stub){
@@ -63,6 +67,7 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 
 		accout, err := AccountGetByName(stub,issueParam.Holder)
 		if err != nil {
+			log.Logger.Error("AccountGetByName:",err)
 			return shim.Error(err.Error())
 		}
 
@@ -89,12 +94,14 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 
 	ledgerByte, err := json.Marshal(leder)
 	if err != nil {
+		log.Logger.Error("Marshal:",err)
 		return shim.Error(err.Error())
 	}
 
 	err = stub.PutState(key,ledgerByte)
 
 	if err != nil {
+		log.Logger.Error("PutState:",err)
 		return shim.Error(err.Error())
 	}
 
@@ -279,6 +286,7 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 
 	token , err := TokenGet(stub,transfer.Token)
 	if err != nil {
+		log.Logger.Error("TokenGet:",err)
 		return shim.Error(err.Error())
 	}
 
@@ -293,6 +301,7 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 
 	ledgerByte,err := stub.GetState(key)
 	if err != nil {
+		log.Logger.Error("GetState:",err)
 		return shim.Error(err.Error())
 	}
 
@@ -300,6 +309,7 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 
 	err = json.Unmarshal(ledgerByte,&ledger)
 	if err != nil {
+		log.Logger.Error("Unmarshal:",err)
 		return shim.Error(err.Error())
 	}
 	if ledger.Amount < transfer.Amount {
@@ -310,10 +320,12 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 
 	ledgerByted , err := json.Marshal(ledger)
 	if err != nil {
+		log.Logger.Error("Marshal:",err)
 		return shim.Error(err.Error())
 	}
 	err = stub.PutState(key,ledgerByted)
 	if err != nil {
+		log.Logger.Error("PutState:",err)
 		return shim.Error(err.Error())
 	}
 
@@ -337,11 +349,13 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 
 	eventJSONasBytes, err := json.Marshal(evt)
 	if err != nil {
+		log.Logger.Error("Marshal2222:",err)
 		return shim.Error(err.Error())
 	}
 
 	err = stub.SetEvent(fmt.Sprintf(common.TOPIC, transfer.To), eventJSONasBytes)
 	if err != nil {
+		log.Logger.Error("SetEvent:",err)
 		return shim.Error(err.Error())
 	}
 
@@ -381,6 +395,7 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	resultIterator, err := stub.GetStateByPartialCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE,strings.ToUpper(token.Name)})
 	if err != nil {
+		log.Logger.Error("GetStateByPartialCompositeKey:",err)
 		return shim.Error(err.Error())
 	}
 	defer resultIterator.Close()
@@ -389,12 +404,14 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 	for i=0; resultIterator.HasNext();i++ {
 		iterObj,err := resultIterator.Next()
 		if err != nil {
+			log.Logger.Error("resultIterator:",err)
 			return shim.Error(err.Error())
 		}
 		key := iterObj.Key
 		ledger := model.Ledger{}
 		err = json.Unmarshal(iterObj.Value,&ledger)
 		if err != nil {
+			log.Logger.Error("Unmarshal:",err)
 			return shim.Error(err.Error())
 		}
 
@@ -408,10 +425,12 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 
 		ledgerByte,err  := json.Marshal(ledger)
 		if err != nil {
+			log.Logger.Error("Marshal:",err)
 			return shim.Error(err.Error())
 		}
 		err = stub.PutState(key,ledgerByte)
 		if err != nil {
+			log.Logger.Error("PutState:",err)
 			return shim.Error(err.Error())
 		}
 	}
