@@ -2,7 +2,7 @@ package common
 
 
 const ADMIN_ORG = "Org1MSP"
-const ADMIN_Name = "Admin"
+const ADMIN_Name = "FieldLee"
 
 const VERSION = "Ledger-Code v1.0"
 

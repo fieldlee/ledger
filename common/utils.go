@@ -91,39 +91,67 @@ func GetCommonName(stub shim.ChaincodeStubInterface)( string, error){
 }
 
 func GetIsAdmin(stub shim.ChaincodeStubInterface)( bool, error){
-	val, ok, err := cid.GetAttributeValue(stub, "Admin")
+
+	name,err := GetCommonName(stub)
+
+
 	if err != nil {
+		log.Logger.Error("current username err :", err.Error())
 		return false,err
 	}
 
-	if ok {
-		if val == "true" {
-			return true,nil
-		}
+	log.Logger.Error("current username :", name)
+
+	if strings.ToUpper(strings.TrimSpace(name)) == strings.ToUpper(strings.TrimSpace(ADMIN_Name)){
+		return true , nil
 	}
-	return false, nil
+
+	return false,nil
+	//val, ok, err := cid.GetAttributeValue(stub, "Admin")
+	//if err != nil {
+	//	return false,err
+	//}
+	//
+	//if ok {
+	//	if val == "true" {
+	//		return true,nil
+	//	}
+	//}
+	//return false, nil
 }
 
 func IsSuperAdmin(stub shim.ChaincodeStubInterface)(bool){
 
-	orgid := GetMsp(stub)
+	//orgid := GetMsp(stub)
+	//
+	//isAdmin, err:= GetIsAdmin(stub)
+	//
+	//if err != nil {
+	//	log.Logger.Error("IsSuperAdmin error", err.Error())
+	//}
+	//comName , err := GetCommonName(stub)
+	//if err != nil {
+	//	log.Logger.Error("GetCommonName error", err.Error())
+	//}
+	//if strings.ToLower(orgid) == strings.ToLower(ADMIN_ORG) {
+	//	if isAdmin == true {
+	//		return  true
+	//	}
+	//	if strings.ToLower(comName) == strings.ToLower(ADMIN_Name) {
+	//		return true
+	//	}
+	//}
+	//return false
 
-	isAdmin, err:= GetIsAdmin(stub)
-
+	name,err := GetCommonName(stub)
 	if err != nil {
 		log.Logger.Error("IsSuperAdmin error", err.Error())
+		return false
 	}
-	comName , err := GetCommonName(stub)
-	if err != nil {
-		log.Logger.Error("GetCommonName error", err.Error())
+
+	if strings.ToUpper(strings.TrimSpace(name)) == strings.ToUpper(strings.TrimSpace(ADMIN_Name)){
+		return true
 	}
-	if strings.ToLower(orgid) == strings.ToLower(ADMIN_ORG) {
-		if isAdmin == true {
-			return  true
-		}
-		if strings.ToLower(comName) == strings.ToLower(ADMIN_Name) {
-			return true
-		}
-	}
+
 	return false
 }
