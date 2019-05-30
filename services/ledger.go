@@ -448,15 +448,19 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 			return shim.Error(err.Error())
 		}
 		key := iterObj.Key
+
+		log.Logger.Info(key)
+
 		ledger := model.Ledger{}
 		err = json.Unmarshal(iterObj.Value,&ledger)
 		if err != nil {
 			log.Logger.Error("Unmarshal:",err)
 			return shim.Error(err.Error())
 		}
-
+		log.Logger.Info("amount compute")
+		log.Logger.Info("amount pre :",ledger.Amount)
 		ledger.Amount = ledger.Amount * scaleParam.Scale
-
+		log.Logger.Info("amount aft:",ledger.Amount)
 		if scaleParam.Scale > float64(1.0) {
 			ledger.Desc =  fmt.Sprintf("%s token break up , breake up scale %s",scaleParam.Token, strconv.FormatFloat(scaleParam.Scale,'f',2,64) )
 		}else{
@@ -464,11 +468,13 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 		}
 
 		ledgerByte,err  := json.Marshal(ledger)
+		log.Logger.Info("Marshal:")
 		if err != nil {
 			log.Logger.Error("Marshal:",err)
 			return shim.Error(err.Error())
 		}
 		err = stub.PutState(key,ledgerByte)
+		log.Logger.Info("putstate end")
 		if err != nil {
 			log.Logger.Error("PutState:",err)
 			return shim.Error(err.Error())
