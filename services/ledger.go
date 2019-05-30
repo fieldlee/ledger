@@ -87,6 +87,12 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, holder, err.Error()))
 	}
 
+	issueByte,_ := stub.GetState(key)
+	log.Logger.Info("issueByte:",issueByte)
+	if issueByte != nil {
+		return shim.Error(fmt.Sprintf("the %s token had issued", token.Name))
+	}
+
 	leder.Holder = holder
 	leder.Token = token.Name
 	leder.Amount = issueParam.Amount
