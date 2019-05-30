@@ -195,7 +195,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		return shim.Error(err.Error())
 	}
 
-	if accountFrom.CommonName == accountTo.CommonName {
+	if accountFrom.DidName == accountTo.DidName {
 		return common.SendError(common.ACCOUNT_PREMISSION,fmt.Sprintf("from : %s can not equal to user :%s",sign.Sender,sign.Receiver))
 	}
 
@@ -213,9 +213,9 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	}
 
 	///////// composite key
-	ledgerkey, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(accountFrom.CommonName)})
+	ledgerkey, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(accountFrom.DidName)})
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountFrom.CommonName, err.Error()))
+		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountFrom.DidName, err.Error()))
 	}
 
 	ledgerByte,err := stub.GetState(ledgerkey)
@@ -241,7 +241,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 			return common.SendError(common.Balance_NOT_ENOUGH,fmt.Sprintf("the %s token balance not enough",token.Name))
 		}
 		ledger.Amount = ledger.Amount - sign.Amount
-		ledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.CommonName,accountTo.CommonName,strconv.FormatFloat(sign.Amount,'f',2,64))
+		ledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(sign.Amount,'f',2,64))
 
 		ledgerByted , err := json.Marshal(ledger)
 		if err != nil {

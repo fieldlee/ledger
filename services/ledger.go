@@ -69,7 +69,7 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 		if accout.Status == false {
 			return  common.SendError(common.ACCOUNT_NOT_EXIST,"the holder is not exist or the holder is disable")
 		}
-		holder = accout.CommonName
+		holder = accout.DidName
 	}
 
 
@@ -134,9 +134,9 @@ func LedgerGetBalance(stub shim.ChaincodeStubInterface)pb.Response  {
 		return common.SendError(common.TKNERR_LOCKED,fmt.Sprintf("%s token not enable",token.Name))
 	}
 
-	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(account.CommonName)})
+	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(account.DidName)})
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, account.CommonName, err.Error()))
+		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, account.DidName, err.Error()))
 	}
 
 	ledgerByte,err := stub.GetState(key)
@@ -181,9 +181,9 @@ func LedgerGetHistory(stub shim.ChaincodeStubInterface)pb.Response{
 		return common.SendError(common.TKNERR_LOCKED,fmt.Sprintf("%s token not enable",token.Name))
 	}
 
-	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(account.CommonName)})
+	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(account.DidName)})
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, account.CommonName, err.Error()))
+		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, account.DidName, err.Error()))
 	}
 
 	history, err := stub.GetHistoryForKey(key)
@@ -269,7 +269,7 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 		return shim.Error(err.Error())
 	}
 
-	if accountFrom.CommonName == accountTo.CommonName {
+	if accountFrom.DidName == accountTo.DidName {
 		return common.SendError(common.ACCOUNT_PREMISSION,fmt.Sprintf("from : %s can not equal to user :%s",transfer.From,transfer.To))
 	}
 
@@ -286,9 +286,9 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 		return common.SendError(common.TKNERR_LOCKED,fmt.Sprintf("%s Token is disable",token.Name))
 	}
 
-	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(accountFrom.CommonName)})
+	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(accountFrom.DidName)})
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountFrom.CommonName, err.Error()))
+		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountFrom.DidName, err.Error()))
 	}
 
 	ledgerByte,err := stub.GetState(key)
@@ -306,7 +306,7 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 		return common.SendError(common.Balance_NOT_ENOUGH,fmt.Sprintf("the %s token balance not enough",token.Name))
 	}
 	ledger.Amount = ledger.Amount - transfer.Amount
-	ledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.CommonName,accountTo.CommonName,strconv.FormatFloat(transfer.Amount,'f',2,64))
+	ledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(transfer.Amount,'f',2,64))
 
 	ledgerByted , err := json.Marshal(ledger)
 	if err != nil {
