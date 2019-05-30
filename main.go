@@ -55,6 +55,16 @@ func(lcc *LedgerChainCode)Invoke(stub shim.ChaincodeStubInterface)pb.Response{
 
 	case "scale":
 		return services.LedgerScale(stub)
+
+	case "signreq":
+		return services.SignRequest(stub)
+
+	case "signget":
+		return services.SignGetRequest(stub)
+
+	case "signresp":
+		return services.SignRepsonse(stub)
+
 	default:
 		return shim.Error("function not define,please check function")
 	}
