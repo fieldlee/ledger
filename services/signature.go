@@ -7,11 +7,10 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 	"ledger/common"
-	"ledger/model"
 	"ledger/log"
+	"ledger/model"
 	"strconv"
 	"strings"
-
 )
 
 func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
@@ -232,15 +231,14 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		return shim.Error(err.Error())
 	}
 
-	if response.Accept == false{  ///// 不同意支付
-		////// update sign
-		sign.Status = common.Failed_SIGN
+	if response.Accept == true{  ///// 同意支付
 
-	}else{  /////// 同意支付
 		if ledger.Amount < sign.Amount {
 			return common.SendError(common.Balance_NOT_ENOUGH,fmt.Sprintf("the %s token balance not enough",token.Name))
 		}
+
 		ledger.Amount = ledger.Amount - sign.Amount
+
 		ledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(sign.Amount,'f',2,64))
 
 		ledgerByted , err := json.Marshal(ledger)
@@ -254,7 +252,44 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		////// update sign
 		sign.Status = common.SENT_SIGN
 
+		//////////////////////to
+		tokey, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(accountTo.DidName)})
+		if err != nil {
+			return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountTo.DidName, err.Error()))
+		}
+		toledgerByte,err := stub.GetState(tokey)
+		if err != nil{
+			log.Logger.Error("TO GetState:",err)
+			return shim.Error(err.Error())
+		}
+		log.Logger.Info("toledgerByte:",toledgerByte)
 
+		toledger := model.Ledger{}
+		if toledgerByte == nil {
+			toledger.Holder = strings.ToUpper(accountTo.DidName)
+			toledger.Token = strings.ToUpper(token.Name)
+			toledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(sign.Amount,'f',2,64))
+			toledger.Amount = toledger.Amount + sign.Amount
+		}else {
+			err = json.Unmarshal(toledgerByte,&toledger)
+			if err != nil {
+				return shim.Error(err.Error())
+			}
+			toledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(sign.Amount,'f',2,64))
+			toledger.Amount = toledger.Amount + sign.Amount
+		}
+		toTransferedByted , err := json.Marshal(toledger)
+		if err != nil {
+			log.Logger.Error("Marshal333:",err)
+			return shim.Error(err.Error())
+		}
+		err = stub.PutState(tokey,toTransferedByted)
+		if err != nil {
+			log.Logger.Error("PutState222:",err)
+			return shim.Error(err.Error())
+		}
+
+		////////////////////==============================================///////////////////////
 		////////////////// send event
 		ts, err := stub.GetTxTimestamp()
 		if err != nil {
@@ -280,6 +315,11 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		if err != nil {
 			return shim.Error(err.Error())
 		}
+
+
+	}else{  /////// 不同意支付
+		////// update sign
+		sign.Status = common.Failed_SIGN
 	}
 
 	signBYte , err := json.Marshal(sign)

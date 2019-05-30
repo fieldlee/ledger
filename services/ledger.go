@@ -121,19 +121,21 @@ func LedgerGetBalance(stub shim.ChaincodeStubInterface)pb.Response  {
 	balance := model.LedgerBalanceParam{}
 
 	err  := json.Unmarshal([]byte(balancejson),&balance)
-
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-
-	account, err := AccountGetByName(stub,balance.Holder)
+	/////////////////////////////// ==============account accountFrom, err := AccountGetByName(stub,transfer.From)
+	account,err := AccountGetByName(stub,balance.Holder)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
+	////////////////////////////// =============token
 	token , err := TokenGet(stub,balance.Token)
 	if err != nil {
+		log.Logger.Error("TokenGet:",err)
 		return shim.Error(err.Error())
 	}
+	/////////////////////////////// =================== token and account check
 	if account.Status == false {
 		return  common.SendError(common.ACCOUNT_NOT_EXIST,"the holder is not exist or the holder is disable")
 	}
