@@ -45,50 +45,40 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 	}
     //// super admin
     if ! common.IsSuperAdmin(stub) {
-		/// 發行人
-		if strings.ToUpper(token.Issuer) != strings.ToUpper(curUserName) {
-			return common.SendError(common.Right_ERR,"only super admin and token issuer can issue the token")
-		}
+		return common.SendError(common.Right_ERR,"only super admin  can issue the token")
 	}
-
+	///// token enable
 	if token.Status == false {
 		return common.SendError(common.TKNERR_LOCKED,fmt.Sprintf("%s token not enable",token.Name))
 	}
 
-	holder, err  := common.GetCommonName(stub)
+
+
+	if issueParam.Holder == "" {
+		return  common.SendError(common.Param_ERR,"the token holder not allownce empty")
+	}
+
+	accout, err := AccountGetByName(stub,issueParam.Holder)
 	if err != nil {
-		log.Logger.Error("GetCommonName:",err)
+		log.Logger.Error("AccountGetByName:",err)
 		return shim.Error(err.Error())
 	}
-	if common.IsSuperAdmin(stub){
-		if issueParam.Holder == "" {
-			return  common.SendError(common.Param_ERR,"the token holder not allownce empty")
-		}
 
-		accout, err := AccountGetByName(stub,issueParam.Holder)
-		if err != nil {
-			log.Logger.Error("AccountGetByName:",err)
-			return shim.Error(err.Error())
-		}
-
-		if accout.Status == false {
-			return  common.SendError(common.ACCOUNT_NOT_EXIST,"the holder is not exist or the holder is disable")
-		}
-		holder = accout.DidName
+	if accout.Status == false {
+		return  common.SendError(common.ACCOUNT_NOT_EXIST,"the holder is not exist or the holder is disable")
 	}
 
+	holder := accout.DidName
 
 	log.Logger.Info("holder:",holder)
-
 	leder := model.Ledger{}
-
 	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(holder)})
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, holder, err.Error()))
 	}
 
 	issueByte,_ := stub.GetState(key)
-	log.Logger.Info("issueByte:",issueByte)
+
 	if issueByte != nil {
 		return shim.Error(fmt.Sprintf("the %s token had issued", token.Name))
 	}
@@ -124,6 +114,7 @@ func LedgerGetBalance(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	balancejson := args[0]
 	log.Logger.Info(balancejson)
+
 	balance := model.LedgerBalanceParam{}
 
 	err  := json.Unmarshal([]byte(balancejson),&balance)
@@ -185,13 +176,16 @@ func LedgerGetHistory(stub shim.ChaincodeStubInterface)pb.Response{
 	if err != nil {
 		return shim.Error(err.Error())
 	}
+
 	token , err := TokenGet(stub,balance.Token)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
+
 	if account.Status == false {
 		return  common.SendError(common.ACCOUNT_NOT_EXIST,"the holder is not exist or the holder is disable")
 	}
+
 	if token.Status == false {
 		return common.SendError(common.TKNERR_LOCKED,fmt.Sprintf("%s token not enable",token.Name))
 	}
@@ -326,10 +320,13 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 	if ledger.Amount < transfer.Amount {
 		return common.SendError(common.Balance_NOT_ENOUGH,fmt.Sprintf("the %s token balance not enough",token.Name))
 	}
+
 	ledger.Amount = ledger.Amount - transfer.Amount
+
 	ledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(transfer.Amount,'f',2,64))
 
 	ledgerByted , err := json.Marshal(ledger)
+
 	if err != nil {
 		log.Logger.Error("Marshal:",err)
 		return shim.Error(err.Error())
@@ -346,12 +343,12 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 	if err != nil {
 		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountTo.DidName, err.Error()))
 	}
+
 	toledgerByte,err := stub.GetState(tokey)
 	if err != nil{
 		log.Logger.Error("TO GetState:",err)
 		return shim.Error(err.Error())
 	}
-	log.Logger.Info("toledgerByte:",toledgerByte)
 
 	toledger := model.Ledger{}
 	if toledgerByte == nil {
@@ -452,7 +449,6 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 	for i=0; resultIterator.HasNext();i++ {
 		iterObj,err := resultIterator.Next()
 		if err != nil {
-			log.Logger.Error("resultIterator:",err)
 			return shim.Error(err.Error())
 		}
 		key := iterObj.Key
@@ -462,13 +458,10 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 		ledger := model.Ledger{}
 		err = json.Unmarshal(iterObj.Value,&ledger)
 		if err != nil {
-			log.Logger.Error("Unmarshal:",err)
 			return shim.Error(err.Error())
 		}
-		log.Logger.Info("amount compute")
-		log.Logger.Info("amount pre :",ledger.Amount)
 		ledger.Amount = ledger.Amount * scaleParam.Scale
-		log.Logger.Info("amount aft:",ledger.Amount)
+
 		if scaleParam.Scale > float64(1.0) {
 			ledger.Desc =  fmt.Sprintf("%s token break up , breake up scale %s",scaleParam.Token, strconv.FormatFloat(scaleParam.Scale,'f',2,64) )
 		}else{
@@ -476,15 +469,14 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 		}
 
 		ledgerByte,err  := json.Marshal(ledger)
-		log.Logger.Info("Marshal:")
+
 		if err != nil {
-			log.Logger.Error("Marshal:",err)
 			return shim.Error(err.Error())
 		}
 		err = stub.PutState(key,ledgerByte)
-		log.Logger.Info("putstate end")
+
 		if err != nil {
-			log.Logger.Error("PutState:",err)
+
 			return shim.Error(err.Error())
 		}
 	}
@@ -515,9 +507,7 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 			return shim.Error(err.Error())
 		}
 		if signReq.Status == common.PENDING_SIGN {
-			log.Logger.Info("amount pre :",signReq.Amount)
 			signReq.Amount = signReq.Amount * scaleParam.Scale
-			log.Logger.Info("amount aft:",signReq.Amount)
 			////////// desc info
 			if scaleParam.Scale > float64(1.0) {
 				signReq.Desc =  fmt.Sprintf("%s token break up , breake up scale %s",scaleParam.Token, strconv.FormatFloat(scaleParam.Scale,'f',2,64) )
@@ -527,20 +517,17 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 			ledgerByte,err  := json.Marshal(signReq)
 
 			if err != nil {
-				log.Logger.Error("Marshal:",err)
 				return shim.Error(err.Error())
 			}
 			err = stub.PutState(signkey,ledgerByte)
 
 			if err != nil {
-				log.Logger.Error("PutState:",err)
 				return shim.Error(err.Error())
 			}
 		}else{
 			continue
 		}
 	}
-
 
 	returnString := fmt.Sprintf("had scale %d token holders, had scale %d pending for sign tx",i,j)
 	return shim.Success([]byte(returnString))

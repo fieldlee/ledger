@@ -155,3 +155,11 @@ func IsSuperAdmin(stub shim.ChaincodeStubInterface)(bool){
 
 	return false
 }
+
+func CheckUserEnable(stub shim.ChaincodeStubInterface)(bool){
+
+	return true
+}
+func CheckTokenEnable(stub shim.ChaincodeStubInterface,tokenName string)(bool){
+	return true
+}
