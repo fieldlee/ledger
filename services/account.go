@@ -96,6 +96,17 @@ func AccountConfirm(stub shim.ChaincodeStubInterface)pb.Response{
 		account.MspID = common.GetMsp(stub)
 		account.Status = true
 
+		newAccByte,err := json.Marshal(account)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		err = stub.PutState(common.ACCOUNT_PRE + account.DidName,newAccByte)
+		if err != nil {
+			log.Logger.Error(err.Error())
+			return shim.Error(err.Error())
+		}
+
 		return shim.Success(nil)
 	}
 }
