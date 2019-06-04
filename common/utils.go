@@ -1,10 +1,12 @@
 package common
 
 import (
+	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 	"ledger/log"
+	"strconv"
 	"strings"
 )
 
@@ -33,6 +35,10 @@ func GetMspid(stub shim.ChaincodeStubInterface) (string) {
 	return string(newbytes)
 }
 
+func Decimal(value float64) float64 {
+	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
+	return value
+}
 
 func GetMsp(stub shim.ChaincodeStubInterface)(string){
 	id, err := cid.New(stub)
@@ -70,8 +76,16 @@ func GetRight(stub shim.ChaincodeStubInterface)(string){
 }
 
 func SendError(errno int32, msg string) pb.Response {
+	log.Logger.Error(msg)
 	return pb.Response{
 		Status:  errno,
+		Message: msg,
+	}
+}
+
+func SendScuess(msg string) pb.Response{
+	return pb.Response{
+		Status:  200,
 		Message: msg,
 	}
 }

@@ -18,7 +18,7 @@ func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 1{
-		return shim.Error("Parameters error ,please check Parameters")
+		return common.SendError(common.Param_ERR,"Parameters error ,please check Parameters")
 	}
 
 	signRequestStr := args[0]
@@ -28,13 +28,13 @@ func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
 	err := json.Unmarshal([]byte(signRequestStr),&request)
 
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 
 	currentName,err := common.GetCommonName(stub)
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.ACCOUNT_COMMONNAME,err.Error())
 	}
 	if strings.ToUpper(strings.TrimSpace(currentName)) != strings.ToUpper(strings.TrimSpace(request.Receiver)){
 		return common.SendError(common.ACCOUNT_PREMISSION,fmt.Sprintf("current login user:%s not equal receiver: %s",currentName,request.Receiver))
@@ -44,7 +44,7 @@ func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
 	account,err := AccountGetByName(stub,currentName)
 
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.ACCOUNT_COMMONNAME,err.Error())
 	}
 
 	if account.Status == false{
@@ -56,7 +56,7 @@ func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
 	accountFrom,err := AccountGetByName(stub,request.Sender)
 
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.ACCOUNT_COMMONNAME,err.Error())
 	}
 
 	if accountFrom.Status == false{
@@ -66,7 +66,7 @@ func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
 
 	token , err := TokenGet(stub,request.Token)
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 	if token.Status== false{
@@ -77,7 +77,7 @@ func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
 	from := strings.ToUpper( strings.TrimSpace(request.Sender))
 	key, err := stub.CreateCompositeKey(common.CompositeRequestIndexName, []string{common.SIGN_PRE,token.Name, from,  txid})
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", from, txid, err.Error()))
+		return common.SendError(common.COMPOSTEKEY_ERR,fmt.Sprintf("Could not create a composite key for %s-%s: %s", from, txid, err.Error()))
 	}
 
 	sign := model.SignRequest{}
@@ -91,20 +91,20 @@ func SignRequest(stub shim.ChaincodeStubInterface)pb.Response{
 
 	signBYte , err := json.Marshal(sign)
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 	err = stub.PutState(key,signBYte)
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.PUTSTAT_ERR,err.Error())
 	}
-	return shim.Success(nil)
+	return common.SendScuess(fmt.Sprintf("the %s token from %s to %s had request",request.Token,request.Sender,request.Receiver))
 }
 
 func SignGetRequest(stub shim.ChaincodeStubInterface) pb.Response{
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 1{
-		return shim.Error("Parameters error ,please check Parameters")
+		return common.SendError(common.Param_ERR,"Parameters error ,please check Parameters")
 	}
 	signGet := args[0]
 	log.Logger.Info(signGet)
@@ -113,12 +113,12 @@ func SignGetRequest(stub shim.ChaincodeStubInterface) pb.Response{
 	sign := model.LedgerSignGetParam{}
 	err := json.Unmarshal([]byte(signGet),&sign)
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 	account,err := AccountGetByName(stub,sign.Sender)
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.ACCOUNT_COMMONNAME,err.Error())
 	}
 	if account.Status == false{
 		return  common.SendError(common.ACCOUNT_NOT_EXIST,"the sender is not exist or the sender is disable")
@@ -126,7 +126,7 @@ func SignGetRequest(stub shim.ChaincodeStubInterface) pb.Response{
 
 	token , err := TokenGet(stub,sign.Token)
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 	if token.Status == false {
@@ -135,7 +135,7 @@ func SignGetRequest(stub shim.ChaincodeStubInterface) pb.Response{
 
 	iter, err := stub.GetStateByPartialCompositeKey(common.CompositeRequestIndexName, []string{common.SIGN_PRE,token.Name,account.DidName})
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.GETSTAT_ERR,err.Error())
 	}
 	var buffer bytes.Buffer
 	buffer.WriteString("[")
@@ -158,14 +158,14 @@ func SignGetRequest(stub shim.ChaincodeStubInterface) pb.Response{
 	}
 	buffer.WriteString("]")
 
-	return shim.Success(buffer.Bytes())
+	return common.SendScuess(buffer.String())
 }
 
 func SignHistory(stub shim.ChaincodeStubInterface)pb.Response {
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 1{
-		return shim.Error("Parameters error ,please check Parameters")
+		return common.SendError(common.Param_ERR,"Parameters error ,please check Parameters")
 	}
 	signRespJson := args[0]
 	log.Logger.Info(signRespJson)
@@ -174,23 +174,23 @@ func SignHistory(stub shim.ChaincodeStubInterface)pb.Response {
 	err := json.Unmarshal([]byte(signRespJson),&response)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 	token , err := TokenGet(stub,response.Token)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 	key, err := stub.CreateCompositeKey(common.CompositeRequestIndexName, []string{common.SIGN_PRE,token.Name,strings.ToUpper(strings.TrimSpace(response.Sender)),  response.Txid})
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", response.Sender, response.Txid, err.Error()))
+		return common.SendError(common.COMPOSTEKEY_ERR,fmt.Sprintf("Could not create a composite key for %s-%s: %s", response.Sender, response.Txid, err.Error()))
 	}
 
 	history, err := stub.GetHistoryForKey(key)
 	if err != nil {
-		return shim.Error(err.Error())
+		return common.SendError(common.GETSTAT_ERR,err.Error())
 	}
 	defer  history.Close()
 
@@ -232,14 +232,16 @@ func SignHistory(stub shim.ChaincodeStubInterface)pb.Response {
 		bArrayMemberAlreadyWritten = true
 	}
 	buffer.WriteString("]")
-	return shim.Success(buffer.Bytes())
+
+	return common.SendScuess(buffer.String())
+
 }
 
 func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	_,args := stub.GetFunctionAndParameters()
 
 	if len(args) != 1{
-		return shim.Error("Parameters error ,please check Parameters")
+		return  common.SendError(common.Param_ERR,"Parameters error ,please check Parameters")
 	}
 	signRespJson := args[0]
 	log.Logger.Info(signRespJson)
@@ -248,13 +250,13 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	err := json.Unmarshal([]byte(signRespJson),&response)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 	currentName ,err := common.GetCommonName(stub)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.ACCOUNT_COMMONNAME,err.Error())
 	}
 
 	if strings.ToUpper(strings.TrimSpace(currentName)) != strings.ToUpper(strings.TrimSpace(response.Sender)) {
@@ -264,7 +266,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	token , err := TokenGet(stub,response.Token)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 	if token.Status == false {
@@ -273,13 +275,13 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	key, err := stub.CreateCompositeKey(common.CompositeRequestIndexName, []string{common.SIGN_PRE,token.Name,strings.ToUpper(strings.TrimSpace(response.Sender)),  response.Txid})
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", response.Sender, response.Txid, err.Error()))
+		return common.SendError(common.COMPOSTEKEY_ERR,fmt.Sprintf("Could not create a composite key for %s-%s: %s", response.Sender, response.Txid, err.Error()))
 	}
 
 	respBYte,err := stub.GetState(key)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.GETSTAT_ERR,err.Error())
 	}
 
 	sign := model.SignRequest{}
@@ -288,7 +290,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 	if sign.Status != common.PENDING_SIGN {
@@ -299,12 +301,12 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	accountFrom, err := AccountGetByName(stub,sign.Sender)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.ACCOUNT_COMMONNAME,err.Error())
 	}
 	accountTo, err := AccountGetByName(stub,sign.Receiver)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.ACCOUNT_COMMONNAME,err.Error())
 	}
 
 	if accountFrom.DidName == accountTo.DidName {
@@ -318,13 +320,13 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	///////// composite key
 	ledgerkey, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(accountFrom.DidName)})
 	if err != nil {
-		return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountFrom.DidName, err.Error()))
+		return common.SendError(common.COMPOSTEKEY_ERR,fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountFrom.DidName, err.Error()))
 	}
 
 	ledgerByte,err := stub.GetState(ledgerkey)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.GETSTAT_ERR,err.Error())
 	}
 
 	//////// transfer
@@ -332,7 +334,7 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	err = json.Unmarshal(ledgerByte,&ledger)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 
 	if response.Accept == true{  ///// 同意支付
@@ -347,12 +349,12 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		ledgerByted , err := json.Marshal(ledger)
 		if err != nil {
 			log.Logger.Error(err.Error())
-			return shim.Error(err.Error())
+			return common.SendError(common.MARSH_ERR,err.Error())
 		}
 		err = stub.PutState(ledgerkey,ledgerByted)
 		if err != nil {
 			log.Logger.Error(err.Error())
-			return shim.Error(err.Error())
+			return common.SendError(common.PUTSTAT_ERR,err.Error())
 		}
 		////// update sign
 		sign.Status = common.SENT_SIGN
@@ -360,14 +362,13 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 		//////////////////////to
 		tokey, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name), strings.ToUpper(accountTo.DidName)})
 		if err != nil {
-			return shim.Error(fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountTo.DidName, err.Error()))
+			return common.SendError(common.COMPOSTEKEY_ERR,fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, accountTo.DidName, err.Error()))
 		}
 		toledgerByte,err := stub.GetState(tokey)
 		if err != nil{
 			log.Logger.Error("TO GetState:",err)
-			return shim.Error(err.Error())
+			return common.SendError(common.GETSTAT_ERR,err.Error())
 		}
-		log.Logger.Info("toledgerByte:",toledgerByte)
 
 		toledger := model.Ledger{}
 
@@ -380,27 +381,25 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 			err = json.Unmarshal(toledgerByte,&toledger)
 			if err != nil {
 				log.Logger.Error(err.Error())
-				return shim.Error(err.Error())
+				return common.SendError(common.MARSH_ERR,err.Error())
 			}
 			toledger.Desc = fmt.Sprintf("From : %s transfer To : %s , value : %s ",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(sign.Amount,'f',2,64))
 			toledger.Amount = toledger.Amount + sign.Amount
 		}
 		toTransferedByted , err := json.Marshal(toledger)
 		if err != nil {
-			log.Logger.Error("Marshal333:",err)
-			return shim.Error(err.Error())
+			return common.SendError(common.MARSH_ERR,err.Error())
 		}
 		err = stub.PutState(tokey,toTransferedByted)
 		if err != nil {
-			log.Logger.Error("PutState222:",err)
-			return shim.Error(err.Error())
+			return common.SendError(common.PUTSTAT_ERR,err.Error())
 		}
 
 		////////////////////==============================================///////////////////////
 		////////////////// send event
 		ts, err := stub.GetTxTimestamp()
 		if err != nil {
-			return shim.Error(err.Error())
+			return common.SendError(common.MARSH_ERR,err.Error())
 		}
 		//////// set event
 		evt := model.LedgerEvent{
@@ -415,12 +414,12 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 
 		eventJSONasBytes, err := json.Marshal(evt)
 		if err != nil {
-			return shim.Error(err.Error())
+			return common.SendError(common.MARSH_ERR,err.Error())
 		}
 
 		err = stub.SetEvent(sign.TxID, eventJSONasBytes)
 		if err != nil {
-			return shim.Error(err.Error())
+			return common.SendError(common.EVENT_ERR,err.Error())
 		}
 
 	}else{  /////// 不同意支付
@@ -432,12 +431,17 @@ func SignRepsonse(stub shim.ChaincodeStubInterface)pb.Response  {
 	signBYte , err := json.Marshal(sign)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.MARSH_ERR,err.Error())
 	}
 	err = stub.PutState(key,signBYte)
 	if err != nil {
 		log.Logger.Error(err.Error())
-		return shim.Error(err.Error())
+		return common.SendError(common.PUTSTAT_ERR,err.Error())
 	}
-	return shim.Success(nil)
+	if sign.Status == common.Failed_SIGN {
+		return common.SendScuess(fmt.Sprintf("From : %s transfer To : %s , value : %s had refused",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(sign.Amount,'f',2,64)))
+	}else{
+		return common.SendScuess(fmt.Sprintf("From : %s transfer To : %s , value : %s had accepted",accountFrom.DidName,accountTo.DidName,strconv.FormatFloat(sign.Amount,'f',2,64)))
+	}
+
 }

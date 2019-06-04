@@ -8,9 +8,11 @@ type Account struct {
 }
 
 type Token struct {
+	Type 	string 	`json:"type,omitempty"`
 	Name       string `json:"name"`    // stock name, eg: "AAPL"
 	Desc       string `json:"desc"`    // description
-	Issuer		string `json:"issuer"`
+	Issuer	   string `json:"issuer"`
+	Amount     float64 `json:"amount"`
 	Status     bool   `json:"status"`
 }
 
@@ -42,7 +44,7 @@ type SignRequest struct {
 }
 
 type LedgerIssueParam struct {
-	Holder  string `json:"holder"`
+	Holder  string `json:"holder,omitempty"`
 	Token 	string `json:"token"`
 	Amount  float64 `json:"amount"`
 }
@@ -70,6 +72,11 @@ type LedgerRequestParam struct {
 	Sender     string `json:"sender"`
 	Receiver   string `json:"receiver"`
 	Amount     float64 `json:"amount"`
+}
+
+type LedgerBurnParam struct {
+	Token 	string `json:"token"`
+	Amount  float64 `json:"amount"`
 }
 
 type LedgerSignGetParam struct {
