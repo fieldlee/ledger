@@ -1,11 +1,13 @@
 package common
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 	"ledger/log"
+	"ledger/model"
 	"strconv"
 	"strings"
 )
@@ -75,19 +77,23 @@ func GetRight(stub shim.ChaincodeStubInterface)(string){
 	}
 }
 
-func SendError(errno int32, msg string) pb.Response {
+func SendError(errno int, msg string) pb.Response {
 	log.Logger.Error(msg)
-	return pb.Response{
-		Status:  errno,
-		Message: msg,
+	returnJson := model.ReturnJson{
+		Status:errno,
+		Message:msg,
 	}
+	returnByte,_ := json.Marshal(returnJson)
+	return shim.Error(string(returnByte))
 }
 
 func SendScuess(msg string) pb.Response{
-	return pb.Response{
-		Status:  200,
-		Message: msg,
+	returnJson := model.ReturnJson{
+		Status:200,
+		Message:msg,
 	}
+	returnByte,_ := json.Marshal(returnJson)
+	return shim.Success(returnByte)
 }
 
 func GetCommonName(stub shim.ChaincodeStubInterface)( string, error){

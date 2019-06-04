@@ -53,14 +53,12 @@ func TokenCreate(stub shim.ChaincodeStubInterface)pb.Response{
 		if err != nil {
 			return common.SendError(common.MARSH_ERR,err.Error())
 		}
-
 		err = stub.PutState(common.TOKEN_PRE+tokenname,tokenNewByte)
 		if err != nil {
 			return common.SendError(common.PUTSTAT_ERR,err.Error())
 		}
 		return common.SendScuess(fmt.Sprintf("%s token had create",tokenname))
 	}
-
 	return common.SendError(common.TKNERR_EXIST,fmt.Sprintf("%s is exist",tokenname))
 }
 
