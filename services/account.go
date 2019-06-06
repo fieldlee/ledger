@@ -276,3 +276,22 @@ func AccountGetHistory(stub shim.ChaincodeStubInterface)pb.Response{
 
 	return common.SendScuess(buffer.String())
 }
+
+////　ｇｅｔ account
+func AccountGet(stub shim.ChaincodeStubInterface)pb.Response{
+	_,args := stub.GetFunctionAndParameters()
+	if len(args) != 1{
+		log.Logger.Error("Parameters error ,please check Parameters")
+		return common.SendError(common.Param_ERR,"Parameters error ,please check Parameters")
+	}
+
+	accountName := strings.ToUpper(strings.TrimSpace(args[0]))
+
+	accByte,err := stub.GetState(common.ACCOUNT_PRE + accountName)
+	if err != nil {
+		log.Logger.Error(err.Error())
+		return common.SendError(common.GETSTAT_ERR,err.Error())
+	}
+
+	return common.SendScuess(string(accByte))
+}

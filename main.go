@@ -30,6 +30,8 @@ func(lcc *LedgerChainCode)Invoke(stub shim.ChaincodeStubInterface)pb.Response{
 		return services.AccountLock(stub)
 	case "account_unlock":
 		return services.AccountUNLock(stub)
+	case "account_get":
+		return services.AccountGet(stub)
 	case "token_create":
 		return services.TokenCreate(stub)
 	case "token_lock":
