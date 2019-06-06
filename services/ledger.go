@@ -70,15 +70,20 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 	issueByte,_ := stub.GetState(key)
-
+	////////////////////////===========================多次ｉｓｓｕｅ
 	if issueByte != nil {
-		return common.SendError(common.GETSTAT_ERR,fmt.Sprintf("the %s token had issued", token.Name))
+		err = json.Unmarshal(issueByte,&leder)
+		if err != nil {
+			return common.SendError(common.MARSH_ERR,err.Error())
+		}
+		leder.Amount = leder.Amount + issueParam.Amount
+		leder.Desc = fmt.Sprintf("%s issue %s token amount:%s",curUserName,token.Name,strconv.FormatFloat(issueParam.Amount,'f',2,64))
+	}else{
+		leder.Holder = holder
+		leder.Token = token.Name
+		leder.Amount = issueParam.Amount
+		leder.Desc = fmt.Sprintf("%s issue %s token amount:%s",curUserName,token.Name,strconv.FormatFloat(issueParam.Amount,'f',2,64))
 	}
-
-	leder.Holder = holder
-	leder.Token = token.Name
-	leder.Amount = issueParam.Amount
-	leder.Desc = fmt.Sprintf("%s issue %s token amount:%s",curUserName,token.Name,strconv.FormatFloat(issueParam.Amount,'f',2,64))
 
 	ledgerByte, err := json.Marshal(leder)
 	if err != nil {
@@ -94,8 +99,12 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 	///////////////================修改token
+	if token.Amount > 0 {
+		token.Amount = token.Amount + issueParam.Amount
+	}else{
+		token.Amount =  issueParam.Amount
+	}
 
-	token.Amount = issueParam.Amount
 	token.Desc = fmt.Sprintf("%s issue amount :%s",token.Name,strconv.FormatFloat(issueParam.Amount,'f',2,64))
 	tokenByted , err := json.Marshal(token)
 	if err != nil {
