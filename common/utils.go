@@ -38,6 +38,17 @@ func GetMspid(stub shim.ChaincodeStubInterface) (string) {
 	return string(newbytes)
 }
 
+func ComMD(mole uint,deno uint) float64{
+	fMole := new(big.Float)
+	fMole.SetUint64(uint64(mole))
+	fDeno := new(big.Float)
+	fDeno.SetUint64(uint64(deno))
+
+	dValue := new(big.Float).Quo(fMole,fDeno)
+	v,_ := dValue.Float64()
+	return Decimal(v)
+}
+
 func ComputeForMD(value float64,mole uint,deno uint) float64{
 	fMole := new(big.Float)
 	fMole.SetUint64(uint64(mole))
