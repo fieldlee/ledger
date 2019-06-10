@@ -44,36 +44,28 @@ func(lcc *LedgerChainCode)Invoke(stub shim.ChaincodeStubInterface)pb.Response{
 		return services.TokenGetHistory(stub)
 	case "token_list":
 		return services.TokenList(stub)
+	case "token_get":
+		return services.TokenGetByName(stub)
 	case "issue":
 		return services.LedgerIssue(stub)
-
 	case "transfer":
 		return services.LedgerTransfer(stub)
-
 	case "balance":
 		return services.LedgerGetBalance(stub)
-
 	case "history":
 		return services.LedgerGetHistory(stub)
-
 	case "burn":
 		return services.LedgerBurnBalance(stub)
-
 	case "scale":
 		return services.LedgerScale(stub)
-
 	case "holdtoken":
 		return services.LedgerGetListbyAccount(stub)
-
 	case "signreq":
 		return services.SignRequest(stub)
-
 	case "signget":
 		return services.SignGetRequest(stub)
-
 	case "signhistory":
 		return services.SignHistory(stub)
-
 	case "signresp":
 		return services.SignRepsonse(stub)
 

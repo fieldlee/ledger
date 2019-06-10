@@ -83,6 +83,28 @@ func TokenGet(stub shim.ChaincodeStubInterface,tokenname string)(model.Token, er
 	return token,nil
 }
 
+// 查询token
+
+func TokenGetByName(stub shim.ChaincodeStubInterface)pb.Response{
+
+	_,args := stub.GetFunctionAndParameters()
+
+	if len(args) != 1 {
+		return common.SendError(common.Param_ERR,"Parameters error ,please check Parameters")
+	}
+
+	tokenname := strings.ToUpper(strings.TrimSpace(args[0]))
+
+	tokenByte,err := stub.GetState(common.TOKEN_PRE+tokenname)
+	if err != nil {
+		return common.SendError(common.GETSTAT_ERR,err.Error())
+	}
+	if tokenByte == nil {
+		return common.SendError(common.GETSTAT_ERR,err.Error())
+	}
+	return common.SendScuess(string(tokenByte))
+}
+
 // Token 状态
 
 func TokenUpdateDisable(stub shim.ChaincodeStubInterface)pb.Response{
