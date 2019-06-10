@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="539741fc-64c6-4814-b938-0d642752dd6e" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/token.go" beforeDir="false" afterPath="$PROJECT_DIR$/services/token.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -40,11 +39,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="678">
-              <caret line="67" column="41" selection-start-line="67" selection-start-column="41" selection-end-line="67" selection-end-column="41" />
+            <state relative-caret-position="458">
+              <caret line="47" column="38" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="38" />
               <folding>
                 <element signature="e#14#179#0" expanded="true" />
               </folding>
@@ -70,11 +69,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/services/token.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="413">
-              <caret line="104" column="45" selection-start-line="104" selection-start-column="45" selection-end-line="104" selection-end-column="45" />
+            <state relative-caret-position="361">
+              <caret line="230" column="42" lean-forward="true" selection-start-line="230" selection-start-column="42" selection-end-line="230" selection-end-column="42" />
               <folding>
                 <element signature="e#18#235#0" expanded="true" />
               </folding>
@@ -125,8 +124,8 @@
         <option value="$PROJECT_DIR$/services/ledger.go" />
         <option value="$PROJECT_DIR$/model/model.go" />
         <option value="$PROJECT_DIR$/services/account.go" />
-        <option value="$PROJECT_DIR$/services/token.go" />
         <option value="$PROJECT_DIR$/main.go" />
+        <option value="$PROJECT_DIR$/services/token.go" />
       </list>
     </option>
   </component>
@@ -340,6 +339,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/model/model.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="140">
+          <caret line="7" column="15" selection-start-line="7" selection-start-column="15" selection-end-line="7" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/services/account.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="600">
+          <caret line="42" column="23" lean-forward="true" selection-start-line="42" selection-start-column="23" selection-end-line="42" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="458">
+          <caret line="47" column="38" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="38" />
+          <folding>
+            <element signature="e#14#179#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/services/ledger.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="340">
@@ -356,13 +379,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model/model.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="140">
-          <caret line="7" column="15" selection-start-line="7" selection-start-column="15" selection-end-line="7" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/constant.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="160">
@@ -370,29 +386,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/services/account.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="600">
-          <caret line="42" column="23" lean-forward="true" selection-start-line="42" selection-start-column="23" selection-end-line="42" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/services/token.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="413">
-          <caret line="104" column="45" selection-start-line="104" selection-start-column="45" selection-end-line="104" selection-end-column="45" />
+        <state relative-caret-position="361">
+          <caret line="230" column="42" lean-forward="true" selection-start-line="230" selection-start-column="42" selection-end-line="230" selection-end-column="42" />
           <folding>
             <element signature="e#18#235#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="678">
-          <caret line="67" column="41" selection-start-line="67" selection-start-column="41" selection-end-line="67" selection-end-column="41" />
-          <folding>
-            <element signature="e#14#179#0" expanded="true" />
           </folding>
         </state>
       </provider>

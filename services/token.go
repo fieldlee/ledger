@@ -43,7 +43,7 @@ func TokenCreate(stub shim.ChaincodeStubInterface)pb.Response{
 	token := model.Token{}
 
 	if tokenByte == nil{
-		token.Type = "token"
+		token.Type = common.TOKEN
 		token.Status = true
 		token.Desc = desc
 		token.Name = tokenname
