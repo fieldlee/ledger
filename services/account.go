@@ -43,6 +43,7 @@ func AccountCheck(stub shim.ChaincodeStubInterface)pb.Response{
 	if accByte == nil {
 		// 添加用户信息
 		newAccount := model.Account{}
+		newAccount.Type = common.ACCOUNT
 		newAccount.DidName = accountName
 
 		newAccByte,err := json.Marshal(newAccount)
@@ -90,6 +91,7 @@ func AccountConfirm(stub shim.ChaincodeStubInterface)pb.Response{
 			log.Logger.Error(err.Error())
 			return common.SendError(common.MARSH_ERR,err.Error())
 		}
+		account.Type = common.ACCOUNT
 		account.DidName = accountName
 		account.CommonName = commonName
 		account.MspID = common.GetMsp(stub)
@@ -158,7 +160,7 @@ func AccountLock(stub shim.ChaincodeStubInterface)pb.Response{
 		if account.Status == false {
 			return common.SendScuess(fmt.Sprintf("%s had locked",accountName))
 		}
-
+		account.Type = common.ACCOUNT
 		account.Status = false
 
 		accountByte,err := json.Marshal(account)
@@ -202,6 +204,7 @@ func AccountUNLock(stub shim.ChaincodeStubInterface)pb.Response{
 		if account.Status == true {
 			return common.SendScuess(fmt.Sprintf("%s had unlock",accountName))
 		}
+		account.Type = common.ACCOUNT
 		account.Status = true
 		accountByte,err := json.Marshal(account)
 		if err != nil{
@@ -294,4 +297,40 @@ func AccountGet(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 	return common.SendScuess(string(accByte))
+}
+
+////　get all account
+func AccountGetAll(stub shim.ChaincodeStubInterface)pb.Response{
+	queryString := "{\"selector\":{\"type\":\"account\"}}"
+	resultsIterator, err := stub.GetQueryResult(queryString)
+	defer resultsIterator.Close()
+	if err != nil {
+		return common.SendError(common.GETSTAT_ERR,err.Error())
+	}
+	// buffer is a JSON array containing QueryRecords
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+	bArrayMemberAlreadyWritten := false
+	for resultsIterator.HasNext() {
+		queryResponse,err := resultsIterator.Next()
+		if err != nil {
+			return common.SendError(common.MARSH_ERR,err.Error())
+		}
+
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString("{\"Key\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(queryResponse.Key)
+		buffer.WriteString("\"")
+		buffer.WriteString(", \"Record\":")
+		// Record is a JSON object, so we write as-is
+		buffer.WriteString(string(queryResponse.Value))
+		buffer.WriteString("}")
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
+
+	return common.SendScuess(buffer.String())
 }

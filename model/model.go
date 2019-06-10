@@ -1,14 +1,15 @@
 package model
 
 type Account struct {
+	Type       string `json:"type,omitempty"`
 	DidName    string `json:"name"`
 	CommonName string `json:"cn"`
 	MspID      string `json:"mspid"`
-	Status 		bool `json:"status"`
+	Status 	   bool  `json:"status"`
 }
 
 type Token struct {
-	Type 	string 	`json:"type,omitempty"`
+	Type 	   string `json:"type,omitempty"`
 	Name       string `json:"name"`    // stock name, eg: "AAPL"
 	Desc       string `json:"desc"`    // description
 	Issuer	   string `json:"issuer"`
