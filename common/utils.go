@@ -8,6 +8,7 @@ import (
 	pb "github.com/hyperledger/fabric/protos/peer"
 	"ledger/log"
 	"ledger/model"
+	"math/big"
 	"strconv"
 	"strings"
 )
@@ -35,6 +36,22 @@ func GetMspid(stub shim.ChaincodeStubInterface) (string) {
 		}
 	}
 	return string(newbytes)
+}
+
+func ComputeForMD(value float64,mole uint,deno uint) float64{
+	fMole := new(big.Float)
+	fMole.SetUint64(uint64(mole))
+	fDeno := new(big.Float)
+	fDeno.SetUint64(uint64(deno))
+
+	fValue := new(big.Float)
+	fValue.SetFloat64(value)
+
+	mValue := new(big.Float).Mul(fValue,fMole)
+	dValue := new(big.Float).Quo(mValue,fDeno)
+
+	v,_ := dValue.Float64()
+	return Decimal(v)
 }
 
 func Decimal(value float64) float64 {

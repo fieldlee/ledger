@@ -63,7 +63,8 @@ type LedgerTransferParam struct {
 
 type LedgerScaleParam struct {
 	Token 	string `json:"token"`
-	Scale 	float64 `json:"scale"`
+	Mole	uint 	`json:"mole"`
+	Deno	uint		`json:"deno"`
 }
 
 type LedgerRequestParam struct {

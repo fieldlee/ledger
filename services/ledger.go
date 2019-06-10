@@ -514,6 +514,11 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 	if common.IsSuperAdmin(stub) == false {
 		return common.SendError(common.ACCOUNT_PREMISSION,"only super admin can break up or merge operation")
 	}
+
+	if scaleParam.Deno == 0 {
+		return common.SendError(common.Param_ERR,"deno must Integers greater than 0 ")
+	}
+
 	///////////////////////////////////////////////////////================================修改持有token賬戶
 	resultIterator, err := stub.GetStateByPartialCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE,strings.ToUpper(token.Name)})
 	if err != nil {
@@ -534,11 +539,11 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 		if err != nil {
 			return  common.SendError(common.MARSH_ERR,err.Error())
 		}
-		ledger.Amount = common.Decimal(ledger.Amount * scaleParam.Scale)
-		if scaleParam.Scale > float64(1.0) {
-			ledger.Desc =  fmt.Sprintf("%s token break up , breake up scale %s",scaleParam.Token, strconv.FormatFloat(scaleParam.Scale,'f',2,64) )
+		ledger.Amount = common.ComputeForMD(ledger.Amount,scaleParam.Mole,scaleParam.Deno)
+		if float64(scaleParam.Mole / scaleParam.Deno) > float64(1.0) {
+			ledger.Desc =  fmt.Sprintf("%s token break up , breake up scale %s",scaleParam.Token, strconv.FormatFloat(float64(scaleParam.Mole / scaleParam.Deno),'f',2,64) )
 		}else{
-			ledger.Desc =  fmt.Sprintf("%s token merge , merge scale %s",scaleParam.Token, strconv.FormatFloat(scaleParam.Scale,'f',2,64) )
+			ledger.Desc =  fmt.Sprintf("%s token merge , merge scale %s",scaleParam.Token, strconv.FormatFloat(float64(scaleParam.Mole / scaleParam.Deno),'f',2,64) )
 		}
 		ledgerByte,err  := json.Marshal(ledger)
 		if err != nil {
@@ -571,12 +576,12 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 			return common.SendError(common.MARSH_ERR,err.Error())
 		}
 		if signReq.Status == common.PENDING_SIGN {
-			signReq.Amount = common.Decimal(signReq.Amount * scaleParam.Scale)
+			signReq.Amount = common.ComputeForMD(signReq.Amount,scaleParam.Mole,scaleParam.Deno)
 			////////// desc info
-			if scaleParam.Scale > float64(1.0) {
-				signReq.Desc =  fmt.Sprintf("%s token break up , breake up scale %s",scaleParam.Token, strconv.FormatFloat(scaleParam.Scale,'f',2,64) )
+			if float64(scaleParam.Mole / scaleParam.Deno) > float64(1.0) {
+				signReq.Desc =  fmt.Sprintf("%s token break up , breake up scale %s",scaleParam.Token, strconv.FormatFloat(float64(scaleParam.Mole / scaleParam.Deno),'f',2,64) )
 			}else{
-				signReq.Desc =  fmt.Sprintf("%s token merge , merge scale %s",scaleParam.Token, strconv.FormatFloat(scaleParam.Scale,'f',2,64) )
+				signReq.Desc =  fmt.Sprintf("%s token merge , merge scale %s",scaleParam.Token, strconv.FormatFloat(float64(scaleParam.Mole / scaleParam.Deno),'f',2,64) )
 			}
 			ledgerByte,err  := json.Marshal(signReq)
 
