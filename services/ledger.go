@@ -598,6 +598,23 @@ func LedgerScale(stub shim.ChaincodeStubInterface)pb.Response  {
 		}
 	}
 
+	///////////////////////////////////////////////////================================修改token总发行量
+	token.Amount = common.ComputeForMD(token.Amount,scaleParam.Mole,scaleParam.Deno)
+
+	if common.ComMD(scaleParam.Mole,scaleParam.Deno) > float64(1.0) {
+		token.Desc =  fmt.Sprintf("%s token break up , breake up scale %s",scaleParam.Token, strconv.FormatFloat(common.ComMD(scaleParam.Mole,scaleParam.Deno),'f',2,64) )
+	}else{
+		token.Desc =  fmt.Sprintf("%s token merge , merge scale %s",scaleParam.Token, strconv.FormatFloat(common.ComMD(scaleParam.Mole,scaleParam.Deno),'f',2,64) )
+	}
+	tokenBytes,err := json.Marshal(token)
+	if err != nil {
+		return  common.SendError(common.MARSH_ERR,err.Error())
+	}
+	err = stub.PutState(common.TOKEN_PRE+token.Name,tokenBytes)
+	if err != nil {
+		return  common.SendError(common.PUTSTAT_ERR,err.Error())
+	}
+
 	returnString := fmt.Sprintf("had scale %d token holders, had scale %d pending for sign tx",i,j)
 	return common.SendScuess(returnString)
 
