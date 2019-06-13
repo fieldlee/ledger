@@ -64,6 +64,8 @@ func LedgerIssue(stub shim.ChaincodeStubInterface)pb.Response{
 
 	log.Logger.Info("holder:",holder)
 	leder := model.Ledger{}
+	leder.Type = common.LEDGER
+
 	key, err := stub.CreateCompositeKey(common.CompositeIndexName, []string{common.Ledger_PRE, strings.ToUpper(token.Name),  strings.ToUpper(holder)})
 	if err != nil {
 		return common.SendError(common.COMPOSTEKEY_ERR,fmt.Sprintf("Could not create a composite key for %s-%s: %s", token.Name, holder, err.Error()))
@@ -433,6 +435,7 @@ func LedgerTransfer(stub shim.ChaincodeStubInterface)pb.Response{
 	}
 
 	toledger := model.Ledger{}
+	toledger.Type = common.LEDGER
 	if toledgerByte == nil {
 		toledger.Holder = strings.ToUpper(accountTo.DidName)
 		toledger.Token = strings.ToUpper(token.Name)

@@ -28,6 +28,7 @@ type LedgerEvent struct {
 }
 
 type Ledger struct {
+	Type string `json:"type"`
 	Token string `json:"token"`
 	Holder string `json:"holder"`
 	Amount float64 `json:"amount"`

@@ -6,6 +6,7 @@ const ADMIN_Name = "FieldLee"
 
 const VERSION = "Ledger-Code v1.0"
 
+const LEDGER = "ledger"
 const ACCOUNT = "account"
 const TOKEN = "token"
 
